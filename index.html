@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Rhona</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* --- VINTAGE CHRISTMAS CARD THEME --- */
+        :root {
+            --bg-color: #fdfbf7; 
+            --text-color: #1a4d2e; 
+            --text-muted: #526f60; 
+            --accent-color: #d63031; 
+            --secondary-accent: #00b894; 
+            --input-bg: #ffffff;
+            --border-color: #e0e0e0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Snowflake Styles */
+        .snowflake {
+            position: fixed;
+            top: -20px;
+            color: #b2bec3;
+            user-select: none;
+            z-index: -1; 
+            pointer-events: none;
+            animation: snowfall linear infinite;
+        }
+
+        @keyframes snowfall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0.8; }
+            100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+        }
+
+        .background-glow {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(214, 48, 49, 0.03) 0%, rgba(26, 77, 46, 0.05) 100%);
+            z-index: -2;
+            top: 0; left: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 550px;
+            padding: 30px;
+            opacity: 0;
+            animation: softFadeIn 2.5s ease-out forwards;
+            position: relative;
+            z-index: 10;
+        }
+
+        .dash {
+            width: 40px;
+            height: 3px;
+            background-color: var(--accent-color);
+            margin-bottom: 30px;
+            border-radius: 2px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            line-height: 1.2;
+            font-weight: 600;
+            margin-bottom: 25px;
+            min-height: 2.6rem;
+        }
+
+        h1 span { 
+            color: var(--accent-color); 
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.05); 
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1em;
+            background-color: var(--accent-color);
+            margin-left: 5px;
+            vertical-align: bottom;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .message-body {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            font-weight: 400; 
+        }
+
+        .message-body p { margin-bottom: 20px; }
+
+        .input-group { margin-bottom: 20px; }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            color: var(--text-color);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            resize: none; 
+            outline: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(214, 48, 49, 0.1);
+        }
+
+        .btn-send {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--accent-color);
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(214, 48, 49, 0.3);
+        }
+
+        .btn-send:hover {
+            background-color: #b32425;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(214, 48, 49, 0.4);
+        }
+        
+        .btn-success {
+            background-color: var(--secondary-accent) !important;
+            box-shadow: 0 5px 15px rgba(0, 184, 148, 0.4) !important;
+        }
+
+        .btn-send.loading { opacity: 0.7; pointer-events: none; }
+
+        @keyframes softFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- MODAL / POPUP STYLES --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); /* Darkens background */
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border: 4px solid var(--accent-color); /* Festive Border */
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-gif {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .btn-close {
+            background: var(--text-color);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background-glow"></div>
+
+    <main class="container">
+        <div class="dash"></div>
+        <h1 id="typing-headline"><span class="cursor"></span></h1>
+
+        <div class="message-body">
+            <p>
+                Merry Christmas! Since Pasko man, I figured it's the best time to be honest. 
+                Aminon nako formally na crush tika. HAHAHA.
+            </p>
+            <p>
+                Bitaw, seryoso. pila na ka adlaw nako gusto musulti pero timing lang ako gihulat. 
+                I really admire you—dili lang sa looks, but sa imong vibes ug personality. 
+                You make my days better without even trying.
+            </p>
+        </div>
+
+        <div class="input-group">
+            <label>What do you think?</label>
+            <textarea id="userMessage" placeholder="Type your reply here..."></textarea>
+        </div>
+
+        <button id="sendBtn" class="btn-send" onclick="sendCustomMessage()">
+            Send Reply <span style="font-size:1.2rem">&rarr;</span>
+        </button>
+    </main>
+
+    <div id="giftModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="modal-title">Merry Christmas! 🎄</h2>
+            <img src="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3c2ludWV3dmxpZXdrcXJ4YzZoZGQ4ODB5NTl6anp4dGdjODl6NzgxOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/tFSqMSMnzPRTAdvKyr/giphy.gif" alt="Celebration GIF" class="modal-gif">
+            <button class="btn-close" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // --- SNOWFALL ---
+        function createSnowflake() {
+            const snow = document.createElement('div');
+            snow.classList.add('snowflake');
+            snow.innerHTML = '❄'; 
+            snow.style.left = Math.random() * 100 + 'vw';
+            snow.style.animationDuration = Math.random() * 3 + 4 + 's'; 
+            snow.style.fontSize = Math.random() * 10 + 10 + 'px'; 
+            snow.style.opacity = Math.random() * 0.5 + 0.3; 
+            document.body.appendChild(snow);
+            setTimeout(() => { snow.remove(); }, 7000);
+        }
+        setInterval(createSnowflake, 200);
+
+        // --- TYPEWRITER ---
+        const textToType = "Hey Rhona.";
+        const typingElement = document.getElementById("typing-headline");
+        let charIndex = 0;
+
+        function typeWriter() {
+            if (charIndex < textToType.length) {
+                let char = textToType.charAt(charIndex);
+                if (charIndex >= 4) {
+                    typingElement.innerHTML = textToType.substring(0, 4) + 
+                                              "<span style='color: var(--accent-color)'>" + 
+                                              textToType.substring(4, charIndex + 1) + 
+                                              "</span><span class='cursor'></span>";
+                } else {
+                     typingElement.innerHTML = textToType.substring(0, charIndex + 1) + "<span class='cursor'></span>";
+                }
+                charIndex++;
+                setTimeout(typeWriter, 150);
+            }
+        }
+        setTimeout(typeWriter, 1000);
+
+        // --- SEND MESSAGE & SHOW MODAL ---
+        function sendCustomMessage() {
+            const inputField = document.getElementById('userMessage');
+            const sendBtn = document.getElementById('sendBtn');
+            const message = inputField.value.trim();
+
+            if (!message) {
+                alert("Please type something first :)");
+                return;
+            }
+
+            sendBtn.innerHTML = "Sending...";
+            sendBtn.classList.add('loading');
+
+            const webhookURL = "https://discord.com/api/webhooks/1452513519789670425/T7cHaXzCHQFN-JakfXN9nInQlY8EZxa1iA37Gg13-0j1XODqGRK47nP_bmGLwUG1ybdw";
+
+            const payload = {
+                content: "🎄 **CHRISTMAS REPLY FROM RHONA:** \n" + message,
+                username: "Cupid Bot"
+            };
+
+            fetch(webhookURL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                triggerChristmasConfetti();
+                
+                // Visual updates
+                sendBtn.innerHTML = "Sent! ✔";
+                sendBtn.classList.add('btn-success'); 
+                inputField.value = ""; 
+
+                // Show the GIF Modal after a short delay
+                setTimeout(() => {
+                    showModal();
+                }, 800);
+            })
+            .catch(err => {
+                console.error("Error:", err);
+                triggerChristmasConfetti(); 
+                sendBtn.innerHTML = "Sent! ✔"; 
+                sendBtn.classList.add('btn-success');
+                setTimeout(() => { showModal(); }, 800);
+            });
+        }
+
+        // --- MODAL FUNCTIONS ---
+        function showModal() {
+            const modal = document.getElementById('giftModal');
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('giftModal');
+            modal.classList.remove('show');
+        }
+
+        // --- CONFETTI ---
+        function triggerChristmasConfetti() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var xmasColors = ['#d63031', '#ffffff', '#00b894']; 
+
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0, colors: xmasColors };
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) { return clearInterval(interval); }
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+
+        function randomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+    </script>
+</body>
+</html>
